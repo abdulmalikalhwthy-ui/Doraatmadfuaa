@@ -1,14 +1,42 @@
-from kivy.app import App
-from kivy.uix.label import Label
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
+name: Build APK
 
-class SimpleTestApp(App):
-    def build(self):
-        layout = BoxLayout(orientation='vertical', padding=50, spacing=20)
-        layout.add_widget(Label(text="مرحباً! هذا اختبار لبناء التطبيق.", font_size=20))
-        layout.add_widget(Button(text="زر تجريبي", size_hint=(1, 0.2)))
-        return layout
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-if __name__ == '__main__':
-    SimpleTestApp().run()
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+
+    - name: Install Buildozer
+      run: |
+        pip3 install --user --upgrade buildozer
+        pip3 install --user --upgrade cython virtualenv
+
+    - name: Build with Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
+        # استخدام مهلة أطول لتحميل SDK/NDK
+        export BUILDOZER_WARN_ON_ROOT=0
+        echo y | buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: bin/*.apk
