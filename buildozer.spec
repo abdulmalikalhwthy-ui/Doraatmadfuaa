@@ -18,7 +18,8 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # (list) Application requirements
-requirements = python3,kivy==2.3.1,kivymd==2.0.0,requests,flask
+# 👇 هذا هو السطر الأهم - تمت إضافة جميع مكتبات KivyMD 2.0.0 التابعة
+requirements = python3,kivy==2.3.1,kivymd==2.0.0,requests,flask,materialyoucolor==3.0.3,asynckivy,exceptiongroup,asyncgui
 
 # (str) Supported orientation
 orientation = portrait
@@ -53,12 +54,6 @@ android.accept_sdk_license = True
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.archs = arm64-v8a, armeabi-v7a
-
-# (str) Android entry point, default is main.py
-# android.entrypoint = org.test.remotecourses.MainActivity
-
-# (list) Pattern to whitelist for the android architecture
-# android.whitelist = android,pygame,pyjnius
 
 # (bool) Enable AndroidX support. Default is False
 android.enable_androidx = True
