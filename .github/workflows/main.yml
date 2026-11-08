@@ -28,12 +28,30 @@ jobs:
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
-    # 👇 الحل: استخدام متغير البيئة الذي يخبر Buildozer بقبول الترخيص
+    # 👇 الحل القاطع: استخدام sdkmanager الموجود في بيئة GitHub Actions لقبول الترخيص
+    - name: Accept Android SDK Licenses
+      run: |
+        # البحث عن sdkmanager في المسار القياسي
+        SDKMANAGER_PATH=$(find /usr/local/lib/android/sdk -name "sdkmanager" -type f | head -n 1)
+        
+        # إذا لم نجده، نحمله
+        if [ -z "$SDKMANAGER_PATH" ]; then
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O $HOME/cmdline-tools.zip
+          unzip -q $HOME/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          SDKMANAGER_PATH="$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+        fi
+        
+        # قبول التراخيص وتثبيت الحزم
+        yes | $SDKMANAGER_PATH --licenses || true
+        $SDKMANAGER_PATH "platform-tools" "platforms;android-31" "build-tools;31.0.0" || true
+
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-        export BUILDOZER_WARN_ON_ROOT=0
+        # تمرير مسار SDK لـ Buildozer (إذا لزم الأمر)
+        export ANDROID_HOME=$HOME/android-sdk
         buildozer -v android debug
 
     - name: Upload APK
