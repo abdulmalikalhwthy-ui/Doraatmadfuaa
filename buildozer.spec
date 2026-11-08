@@ -1,42 +1,20 @@
-name: Build APK
+[app]
+title = Remote Courses
+package.name = remotecourses
+package.domain = org.test
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 0.1
 
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+requirements = python3,kivy==2.3.1
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-
-    - name: Install Buildozer
-      run: |
-        pip3 install --user --upgrade buildozer
-        pip3 install --user --upgrade cython virtualenv
-
-    - name: Build with Buildozer
-      run: |
-        export PATH=$PATH:~/.local/bin
-        # استخدام مهلة أطول لتحميل SDK/NDK
-        export BUILDOZER_WARN_ON_ROOT=0
-        echo y | buildozer -v android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
+orientation = portrait
+fullscreen = 0
+android.permissions = INTERNET
+android.api = 31
+android.minapi = 21
+android.ndk = 25b
+android.sdk = 31
+android.private_storage = True
+android.accept_sdk_license = True
+android.archs = arm64-v8a, armeabi-v7a
