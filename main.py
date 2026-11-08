@@ -7,21 +7,51 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        command: buildozer android debug
-        buildozer_version: stable
+        python-version: '3.10'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+
+    # 👇 تحميل SDK و NDK مسبقاً من مرايا Huawei Cloud
+    - name: Pre-download Android SDK and NDK
+      run: |
+        mkdir -p ~/.buildozer/android/packages/tools
+        mkdir -p ~/.buildozer/android/packages/ndk
+        mkdir -p ~/.buildozer/android/platform
+        
+        # تحميل SDK من Huawei Cloud
+        wget -q https://repo.huaweicloud.com/android/repository/commandlinetools-linux-9477386_latest.zip -O ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip
+        
+        # تحميل NDK r25b من Huawei Cloud
+        wget -q https://repo.huaweicloud.com/android/repository/android-ndk-r25b-linux.zip -O ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip
+        
+        # فك الضغط مسبقاً
+        unzip -q ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip -d ~/.buildozer/android/platform/android-sdk
+        unzip -q ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip -d ~/.buildozer/android/platform/
+
+    - name: Install Buildozer and Cython
+      run: |
+        pip3 install --user --upgrade buildozer
+        pip3 install --user --upgrade cython virtualenv
+
+    - name: Build with Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
+        echo y | buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: package
-        path: ${{ steps.buildozer.outputs.filename }}
+        path: bin/*.apk
