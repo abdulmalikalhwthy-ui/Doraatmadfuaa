@@ -28,11 +28,18 @@ jobs:
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
-    # 👇 هذا هو التعديل الحاسم: نمرر y لأمر البناء لقبول الترخيص تلقائياً
+    # 👇 الحل القاطع: إنشاء ملف الترخيص يدوياً قبل البناء
+    - name: Create Android SDK License File
+      run: |
+        mkdir -p ~/.buildozer/android/platform
+        echo "8933bad161af4b6a5b573652ffc7aaf3aee85a47" > ~/.buildozer/android/platform/android-sdk-license
+        echo "d56f5187479451eabf01fb78af6dfcb131b33910" >> ~/.buildozer/android/platform/android-sdk-license
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> ~/.buildozer/android/platform/android-sdk-license
+
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        echo y | buildozer -v android debug
+        buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
