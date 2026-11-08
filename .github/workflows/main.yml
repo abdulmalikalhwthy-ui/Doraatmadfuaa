@@ -23,22 +23,27 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
+    - name: Pre-download Android SDK and NDK
+      run: |
+        mkdir -p ~/.buildozer/android/packages/tools
+        mkdir -p ~/.buildozer/android/packages/ndk
+        mkdir -p ~/.buildozer/android/platform
+        
+        wget -q https://repo.huaweicloud.com/android/repository/commandlinetools-linux-9477386_latest.zip -O ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip
+        wget -q https://repo.huaweicloud.com/android/repository/android-ndk-r25b-linux.zip -O ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip
+        
+        unzip -q ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip -d ~/.buildozer/android/platform/android-sdk
+        unzip -q ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip -d ~/.buildozer/android/platform/
+
     - name: Install Buildozer and Cython
       run: |
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
-    - name: Accept Android SDK Licenses
-      run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
-        mkdir -p $ANDROID_HOME/licenses
-        echo -e "\n8933bad161af4b6a5b573652ffc7aaf3aee85a47" > $ANDROID_HOME/licenses/android-sdk-license
-        echo -e "\nd56f5187479451eabf01fb78af6dfcb131b33910" > $ANDROID_HOME/licenses/android-sdk-preview-license
-
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        buildozer -v android debug
+        echo y | buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
