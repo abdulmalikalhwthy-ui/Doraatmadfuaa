@@ -53,7 +53,8 @@ android.private_storage = True
 android.accept_sdk_license = True
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-android.archs = arm64-v8a, armeabi-v7a
+# 👇 هذا هو التعديل الحاسم: استخدام معمارية واحدة فقط لتجنب خطأ البناء
+android.archs = armeabi-v7a
 
 # (bool) Enable AndroidX support. Default is False
 android.enable_androidx = True
