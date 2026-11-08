@@ -28,7 +28,7 @@ jobs:
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
-    # 👇 تثبيت SDK وقبول الترخيص يدوياً قبل البناء
+    # 👇 خطوة مبسطة وأكثر أماناً لتثبيت SDK
     - name: Setup Android SDK and Accept Licenses
       run: |
         mkdir -p $HOME/.buildozer/android/platform
@@ -36,8 +36,8 @@ jobs:
         unzip -q $HOME/commandlinetools.zip -d $HOME/.buildozer/android/platform/android-sdk
         mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
         mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/bin $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-        $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0" > /dev/null 2>&1
+        echo "y" | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0" || true
 
     - name: Build with Buildozer
       run: |
