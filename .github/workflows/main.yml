@@ -7,21 +7,56 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        command: buildozer android debug
-        buildozer_version: stable
+        python-version: '3.10'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+
+    - name: Install Buildozer and Cython
+      run: |
+        pip3 install --user --upgrade buildozer
+        pip3 install --user --upgrade cython virtualenv
+
+    # 👇 الحل: استخدام sdkmanager الموجود مسبقاً لقبول التراخيص وتثبيت الحزم
+    - name: Setup Android SDK and Accept Licenses
+      run: |
+        # البحث عن sdkmanager في البيئة
+        SDKMANAGER_PATH=$(find /usr/local/lib/android/sdk -name "sdkmanager" -type f | head -n 1)
+        if [ -z "$SDKMANAGER_PATH" ]; then
+          # إذا لم نجده، نحمله يدوياً
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O $HOME/cmdline-tools.zip
+          unzip -q $HOME/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          SDKMANAGER_PATH="$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+        fi
+        
+        # قبول التراخيص
+        yes | $SDKMANAGER_PATH --licenses || true
+        
+        # تثبيت الحزم المطلوبة
+        $SDKMANAGER_PATH "platform-tools" "platforms;android-31" "build-tools;31.0.0" || true
+
+    - name: Build with Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
+        # إذا كان SDK موجوداً في مسار مختلف، نمرره لـ Buildozer
+        export ANDROID_HOME=$HOME/android-sdk
+        buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: package
-        path: ${{ steps.buildozer.outputs.filename }}
+        path: bin/*.apk
