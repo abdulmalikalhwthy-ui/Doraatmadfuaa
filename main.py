@@ -23,31 +23,18 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
-    # 👇 تحميل SDK و NDK مسبقاً من مرايا سريعة لتجنب خطأ 504
-    - name: Pre-download Android SDK and NDK from Mirrors
-      run: |
-        mkdir -p ~/.buildozer/android/packages/tools
-        mkdir -p ~/.buildozer/android/packages/ndk
-        mkdir -p ~/.buildozer/android/platform
-        
-        # تحميل SDK من Huawei Cloud
-        wget -q https://repo.huaweicloud.com/android/repository/commandlinetools-linux-9477386_latest.zip -O ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip
-        
-        # تحميل NDK r25b من Huawei Cloud
-        wget -q https://repo.huaweicloud.com/android/repository/android-ndk-r25b-linux.zip -O ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip
-        
-        # فك الضغط مسبقاً لتوفير الوقت
-        unzip -q ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip -d ~/.buildozer/android/platform/android-sdk
-        unzip -q ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip -d ~/.buildozer/android/platform/
-
     - name: Install Buildozer and Cython
       run: |
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
+    # 👇 الحل: إجبار Buildozer على استخدام مرايا Huawei Cloud لتحميل SDK و NDK
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
+        # توجيه Buildozer لاستخدام مرايا سريعة
+        export BUILDOZER_ANDROID_SDK_URL="https://repo.huaweicloud.com/android/repository/"
+        export BUILDOZER_ANDROID_NDK_URL="https://repo.huaweicloud.com/android/repository/"
         echo y | buildozer -v android debug
 
     - name: Upload APK
