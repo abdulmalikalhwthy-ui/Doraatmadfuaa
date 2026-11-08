@@ -18,8 +18,8 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # (list) Application requirements
-# 👇 هذا هو السطر الأهم - تمت إضافة جميع مكتبات KivyMD 2.0.0 التابعة
-requirements = python3,kivy==2.3.1,kivymd==2.0.0,requests,flask,materialyoucolor==3.0.3,asynckivy,exceptiongroup,asyncgui
+# 👇 تمت إزالة materialshapes و pycairo لتجنب فشل البناء، والاعتماد على التثبيت من المستودع الرئيسي
+requirements = python3,kivy==2.3.1,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor==3.0.3,exceptiongroup,asyncgui,asynckivy,requests,flask
 
 # (str) Supported orientation
 orientation = portrait
