@@ -28,7 +28,7 @@ jobs:
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
 
-    # 👇 خطوة مبسطة وأكثر أماناً لتثبيت SDK
+    # 👇 الحل النهائي: تثبيت SDK ونسخ sdkmanager إلى المسار الذي يتوقعه Buildozer
     - name: Setup Android SDK and Accept Licenses
       run: |
         mkdir -p $HOME/.buildozer/android/platform
@@ -36,8 +36,13 @@ jobs:
         unzip -q $HOME/commandlinetools.zip -d $HOME/.buildozer/android/platform/android-sdk
         mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
         mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/bin $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-        echo "y" | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0" || true
+        
+        # إنشاء مجلد tools ونسخ sdkmanager إليه
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+        cp $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/
+        
+        # قبول التراخيص
+        echo "y" | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
 
     - name: Build with Buildozer
       run: |
@@ -48,4 +53,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: package
-        path: bin/*.apk 
+        path: bin/*.apk
