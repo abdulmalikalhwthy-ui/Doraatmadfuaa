@@ -18,7 +18,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # (list) Application requirements
-# 👇 تم تبسيطها لأقصى حد لاختبار Kivy فقط (بدون KivyMD حالياً)
+# 👇 Kivy فقط لاختبار البناء (بدون KivyMD حالياً)
 requirements = python3,kivy==2.3.1
 
 # (str) Supported orientation
@@ -52,8 +52,11 @@ android.private_storage = True
 # (bool) Accept Android SDK licenses automatically
 android.accept_sdk_license = True
 
+# 👇 الحل الحاسم: منع Buildozer من تحديث SDK (لتجنب طلب الترخيص)
+android.skip_update = False
+
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-# 👇 هذا هو التعديل الحاسم: استخدام معمارية واحدة فقط لتجنب خطأ البناء
+# 👇 معمارية واحدة فقط لتجنب أخطاء البناء
 android.archs = armeabi-v7a
 
 # (bool) Enable AndroidX support. Default is False
