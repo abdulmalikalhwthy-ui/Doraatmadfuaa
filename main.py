@@ -23,7 +23,24 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
-    - name: Install Buildozer
+    # 👇 تحميل SDK و NDK مسبقاً من مرايا سريعة لتجنب خطأ 504
+    - name: Pre-download Android SDK and NDK from Mirrors
+      run: |
+        mkdir -p ~/.buildozer/android/packages/tools
+        mkdir -p ~/.buildozer/android/packages/ndk
+        mkdir -p ~/.buildozer/android/platform
+        
+        # تحميل SDK من Huawei Cloud
+        wget -q https://repo.huaweicloud.com/android/repository/commandlinetools-linux-9477386_latest.zip -O ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip
+        
+        # تحميل NDK r25b من Huawei Cloud
+        wget -q https://repo.huaweicloud.com/android/repository/android-ndk-r25b-linux.zip -O ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip
+        
+        # فك الضغط مسبقاً لتوفير الوقت
+        unzip -q ~/.buildozer/android/packages/tools/commandlinetools-linux-9477386_latest.zip -d ~/.buildozer/android/platform/android-sdk
+        unzip -q ~/.buildozer/android/packages/ndk/android-ndk-r25b-linux.zip -d ~/.buildozer/android/platform/
+
+    - name: Install Buildozer and Cython
       run: |
         pip3 install --user --upgrade buildozer
         pip3 install --user --upgrade cython virtualenv
@@ -31,12 +48,10 @@ jobs:
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # استخدام مهلة أطول لتحميل SDK/NDK
-        export BUILDOZER_WARN_ON_ROOT=0
         echo y | buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: package
-        path: bin/*.apk 
+        path: bin/*.apk
