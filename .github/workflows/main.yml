@@ -7,55 +7,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-
-    - name: Install Buildozer and Cython
-      run: |
-        pip3 install --user --upgrade buildozer
-        pip3 install --user --upgrade cython virtualenv
-
-    # 👇 الحل القاطع: استخدام sdkmanager الموجود في بيئة GitHub Actions لقبول الترخيص
-    - name: Accept Android SDK Licenses
-      run: |
-        # البحث عن sdkmanager في المسار القياسي
-        SDKMANAGER_PATH=$(find /usr/local/lib/android/sdk -name "sdkmanager" -type f | head -n 1)
-        
-        # إذا لم نجده، نحمله
-        if [ -z "$SDKMANAGER_PATH" ]; then
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O $HOME/cmdline-tools.zip
-          unzip -q $HOME/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
-          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          SDKMANAGER_PATH="$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager"
-        fi
-        
-        # قبول التراخيص وتثبيت الحزم
-        yes | $SDKMANAGER_PATH --licenses || true
-        $SDKMANAGER_PATH "platform-tools" "platforms;android-31" "build-tools;31.0.0" || true
-
     - name: Build with Buildozer
-      run: |
-        export PATH=$PATH:~/.local/bin
-        # تمرير مسار SDK لـ Buildozer (إذا لزم الأمر)
-        export ANDROID_HOME=$HOME/android-sdk
-        buildozer -v android debug
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
+      with:
+        command: buildozer android debug
+        buildozer_version: stable
+      env:
+        APP_ANDROID_ARCH: armeabi-v7a
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: package
-        path: bin/*.apk
+        path: ${{ steps.buildozer.outputs.filename }}
