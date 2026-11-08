@@ -2,42 +2,79 @@ from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.textfield import MDTextField
 from kivymd.uix.appbar import MDTopAppBar, MDTopAppBarTitle
+from kivymd.uix.scrollview import MDScrollView
 from kivy.metrics import dp
+from kivy.utils import get_color_from_hex
+
+# نفس ألوان التطبيق السابق
+COLOR_PRIMARY_DARK = get_color_from_hex("#003B2D") 
+COLOR_ACCENT = get_color_from_hex("#FFD700") 
+COLOR_BG = get_color_from_hex("#F5F5F5") 
+COLOR_WHITE = [1, 1, 1, 1]
+COLOR_TEXT_GRAY = get_color_from_hex("#777777")
 
 translations = {
-    'ar': {'coordinator_panel': 'لوحة المنسق العام', 'welcome': 'مرحباً بك أيها المنسق', 'new_requests': 'طلبات التسجيل الجديدة', 'payments': 'مراجعة المقاصصة المالية', 'cards': 'إدخال كروت الدفع (داخلي/خارجي)'},
-    'en': {'coordinator_panel': 'Coordinator Panel', 'welcome': 'Welcome Coordinator', 'new_requests': 'New Registration Requests', 'payments': 'Review Payments / Reconciliation', 'cards': 'Manage Payment Cards'},
-    'fa': {'coordinator_panel': 'پنل هماهنگ‌کننده', 'welcome': 'خوش آمدید هماهنگ‌کننده', 'new_requests': 'درخواست‌های ثبت‌نام جدید', 'payments': 'بررسی تسویه حساب', 'cards': 'مدیریت کارت‌های پرداخت'}
+    'ar': {'panel': 'لوحة المنسق العام', 'welcome': 'مرحباً بك أيها المنسق', 'req': 'طلبات التسجيل', 'pay': 'المقاصصة المالية', 'cards': 'كروت الدفع'},
+    'en': {'panel': 'Coordinator Panel', 'welcome': 'Welcome Coordinator', 'req': 'Registration Requests', 'pay': 'Financial Reconciliation', 'cards': 'Payment Cards'},
+    'fa': {'panel': 'پنل هماهنگ‌کننده', 'welcome': 'خوش آمدید هماهنگ‌کننده', 'req': 'درخواست‌های ثبت‌نام', 'pay': 'تسویه حساب', 'cards': 'کارت‌های پرداخت'}
 }
-
 current_lang = 'ar'
 
 class CoordinatorScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.layout = MDBoxLayout(orientation='vertical')
+        self.name = "coordinator"
         
+        layout = MDBoxLayout(orientation='vertical', md_bg_color=COLOR_BG)
+        
+        # شريط علوي فخم
         self.toolbar = MDTopAppBar(
-            MDTopAppBarTitle(text=translations[current_lang]['coordinator_panel']),
-            type="small"
+            MDTopAppBarTitle(text=translations[current_lang]['panel'], theme_text_color="Custom", text_color=COLOR_ACCENT),
+            type="small",
+            md_bg_color=COLOR_PRIMARY_DARK,
+            right_action_items=[["translate", lambda x: self.change_language()]]
         )
-        self.layout.add_widget(self.toolbar)
+        layout.add_widget(self.toolbar)
         
-        self.welcome_lbl = MDLabel(text=translations[current_lang]['welcome'], halign="center", font_style="H5", size_hint_y=0.2)
-        self.layout.add_widget(self.welcome_lbl)
+        # منطقة المحتوى
+        scroll = MDScrollView(padding=dp(15))
+        content = MDBoxLayout(orientation='vertical', spacing=dp(15), size_hint_y=None)
+        content.bind(minimum_height=content.setter('height'))
         
-        self.btn_requests = MDButton(MDButtonText(text=translations[current_lang]['new_requests'] + " (0)"), style="filled", size_hint=(1, 0.2), md_bg_color=(0.8, 0.4, 0.1, 1))
-        self.btn_payments = MDButton(MDButtonText(text=translations[current_lang]['payments']), style="filled", size_hint=(1, 0.2), md_bg_color=(0.1, 0.6, 0.3, 1))
-        self.btn_cards = MDButton(MDButtonText(text=translations[current_lang]['cards']), style="filled", size_hint=(1, 0.2))
+        welcome = MDLabel(text=translations[current_lang]['welcome'], halign="center", font_style="Title", role="medium", theme_text_color="Custom", text_color=COLOR_PRIMARY_DARK, size_hint_y=None, height=dp(50))
+        content.add_widget(welcome)
         
-        self.layout.add_widget(self.btn_requests)
-        self.layout.add_widget(self.btn_payments)
-        self.layout.add_widget(self.btn_cards)
+        # الأزرار (البطاقات)
+        self.btn_req = self.create_card(translations[current_lang]['req'], "account-clock", COLOR_PRIMARY_DARK)
+        self.btn_pay = self.create_card(translations[current_lang]['pay'], "cash-check", "#4CAF50")
+        self.btn_cards = self.create_card(translations[current_lang]['cards'], "credit-card", "#2196F3")
         
-        self.add_widget(self.layout)
+        content.add_widget(self.btn_req)
+        content.add_widget(self.btn_pay)
+        content.add_widget(self.btn_cards)
+        
+        scroll.add_widget(content)
+        layout.add_widget(scroll)
+        self.add_widget(layout)
+
+    def create_card(self, text, icon, color):
+        card = MDCard(size_hint_y=None, height=dp(100), radius=[dp(15)], elevation=4, md_bg_color=COLOR_WHITE, padding=dp(15), ripple_behavior=True)
+        box = MDBoxLayout(orientation='horizontal', spacing=dp(15))
+        
+        # الأيقونة
+        from kivymd.uix.button import MDIconButton
+        box.add_widget(MDIconButton(icon=icon, theme_icon_color="Custom", icon_color=color, icon_size=dp(40)))
+        
+        # النص
+        box.add_widget(MDLabel(text=text, halign="right", font_style="Title", role="medium", theme_text_color="Custom", text_color=COLOR_PRIMARY_DARK))
+        
+        card.add_widget(box)
+        return card
 
     def change_language(self):
         global current_lang
@@ -45,15 +82,14 @@ class CoordinatorScreen(MDScreen):
         elif current_lang == 'en': current_lang = 'fa'
         else: current_lang = 'ar'
         
-        self.toolbar.children[0].text = translations[current_lang]['coordinator_panel']
-        self.welcome_lbl.text = translations[current_lang]['welcome']
-        self.btn_requests.children[0].text = translations[current_lang]['new_requests'] + " (0)"
-        self.btn_payments.children[0].text = translations[current_lang]['payments']
-        self.btn_cards.children[0].text = translations[current_lang]['cards']
+        self.toolbar.children[0].text = translations[current_lang]['panel']
+        self.btn_req.children[0].children[0].text = translations[current_lang]['req']
+        self.btn_pay.children[0].children[0].text = translations[current_lang]['pay']
+        self.btn_cards.children[0].children[0].text = translations[current_lang]['cards']
 
 class CoordinatorApp(MDApp):
     def build(self):
-        self.theme_cls.primary_palette = "Teal"
+        self.theme_cls.primary_palette = "Green"
         sm = MDScreenManager()
         sm.add_widget(CoordinatorScreen())
         return sm
