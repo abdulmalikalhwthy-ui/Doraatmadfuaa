@@ -1,4 +1,4 @@
-name: Build APK with Buildozer Action
+name: Build APK
 
 on:
   push:
@@ -13,15 +13,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 👇 هذه هي الأداة التي تعمل داخل Docker وتحتوي على كل شيء جاهز
     - name: Build with Buildozer
       uses: ArtemSBulgakov/buildozer-action@v1
       id: buildozer
       with:
         command: buildozer android debug
-        buildozer_version: stable
+        buildozer_version: 1.4.0
 
-    # 👇 رفع ملف APK للتحميل
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
